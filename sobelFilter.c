@@ -19,27 +19,33 @@ __global__ void  convolutionSobelGPUkernel(unsigned char *M, char *d_Gx, char *d
     int Gx = 0, Gy = 0;
     int start_col = col - (widthM/2);
     int start_row = row - (widthM/2);
+
     for (int i = 0; i < widthM ; i++) {
       for (int j = 0; j < widthM; j++) {
         int curRow = start_row + i;
         int curCol = start_col + j;
         if(curRow > -1 && curRow < m && curCol > -1 && curCol < n){
-          Gx += M[curRow*m + curCol]*d_Gx[i*widthM + j];
-          Gy += M[curRow*m + curCol]*d_Gy[i*widthM + j];
+          Gx += M[curRow*n + curCol]*d_Gx[i*widthM + j];
+          Gy += M[curRow*n + curCol]*d_Gy[i*widthM + j];
         }
       }
     }
 
     if(Gx < 0)
       Gx = 0;
+    else{
     if(Gx > 255)
       Gx = 255;
+    }
+
     if(Gy < 0)
       Gy = 0;
+    else{
     if(Gy > 255)
       Gy = 255;
+    }
 
-    resultado[row*n + col] = (unsigned char)sqrtf((Gx * Gx) + (Gy * Gy));;
+    resultado[row*n + col] = (unsigned char)sqrtf((Gx * Gx) + (Gy * Gy));
   }
 }
 
@@ -67,19 +73,21 @@ int main(int argc, char **argv) {
 
   char *d_Gx,*d_Gy;
   unsigned char *d_img,*d_imgSobel;
+
   cudaMalloc((void**)&d_Gx,(maskwidth*maskwidth)*sizeof(char));
   cudaMalloc((void**)&d_Gy,(maskwidth*maskwidth)*sizeof(char));
   cudaMalloc((void**)&d_img,(s.width*s.height)*sizeof(unsigned char));
   cudaMalloc((void**)&d_imgSobel,(s.width*s.height)*sizeof(unsigned char));
 
-  cudaMemcpy(d_Gx,h_Gx,(s.width*s.height)*sizeof(char),cudaMemcpyHostToDevice);
-  cudaMemcpy(d_Gy,h_Gy,(s.width*s.height)*sizeof(char),cudaMemcpyHostToDevice);
+  cudaMemcpy(d_Gx,h_Gx,(maskwidth*maskwidth)*sizeof(char),cudaMemcpyHostToDevice);
+  cudaMemcpy(d_Gy,h_Gy,(maskwidth*maskwidth)*sizeof(char),cudaMemcpyHostToDevice);
   cudaMemcpy(d_img,grayImg.data,(s.width*s.height)*sizeof(unsigned char),cudaMemcpyHostToDevice);
 
   int blockSize = 32;
-  dim3 DimGrid((s.width - 1)/blockSize + 1, (s.height - 1)/blockSize+1, 1);
+  dim3 DimGrid(ceil(s.width/float(blockSize)), ceil(s.height/float(blockSize)), 1);
   dim3 DimBlock(blockSize,blockSize,1);
-  convolutionSobelGPUkernel<<<DimGrid,DimBlock>>>(d_img,d_Gx,d_Gy,d_imgSobel,s.height,s.width,,maskwidth);
+
+  convolutionSobelGPUkernel<<<DimGrid,DimBlock>>>(d_img,d_Gx,d_Gy,d_imgSobel,s.height,s.width,maskwidth);
 
   cudaMemcpy(h_imgSobel,d_imgSobel,(s.width*s.height)*sizeof(unsigned char),cudaMemcpyDeviceToHost);
 
@@ -90,7 +98,7 @@ int main(int argc, char **argv) {
 
 
   // Guardando la imagen generada por CUDA
-  imwrite("./outputs/1088318976.png", imgSobelCuda);
+  imwrite("./outputs/1088310731.png", imgSobelCuda);
 
   // Guardando la imagen generada por openCV
   //imwrite("./outputs/1088318976.png", abs_grad_x);
