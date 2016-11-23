@@ -138,6 +138,13 @@ para la realizacion de este trabajo se debio investigar sobre como compilar ```C
 #### Grafica del factor de aceleracion
 ![alt tag](img/ac3.PNG)
 
+
+# CONCLUSIONES
+
+* La ejecucion realizada en gpu por medio de cuda es mucho mas rapida que la que realizamos en mpi, debido a la capacidad de paralelizacion que nos brinda una gpu en comparacion con la de una cpu que tiene mas memoria pero una alu mas pequeña, lo cual es inverso en una gpu.
+* Para ambas implementaciones se hicieron pruebas en 1 , 2 y 3 nodos donde se pudo observar que al aumentar el numero de nodos, lo cual simbolizaba un aumento en la cantidad de recursos mejoraba el desempeño de ambos
+* al aumentar la cantidad de nodos se disminuyeron tiempos y se pudo aumentar la dimension de las matrices
+
 ***
 ###### Farley Estiven Gonzalez Osorio
 ###### Robert Sneyder Garcia Moreno
